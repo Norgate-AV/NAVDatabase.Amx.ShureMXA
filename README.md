@@ -68,7 +68,7 @@ DEFINE_START {
 }
 
 
-define_module 'mShureMXA' ShureMXAComm(vdvShureMXA, dvSHureMXA)
+define_module 'mShureMXA' ShureMXAComm(vdvShureMXA, dvShureMXA)
 
 
 DEFINE_EVENT
