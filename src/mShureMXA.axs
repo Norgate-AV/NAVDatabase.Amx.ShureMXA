@@ -192,6 +192,7 @@ define_function Reset() {
 }
 
 
+#IF_DEFINED USING_NAV_MODULE_BASE_PROPERTY_EVENT_CALLBACK
 define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
     if (event.Device != vdvObject) {
         return
@@ -205,8 +206,10 @@ define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
         }
     }
 }
+#END_IF
 
 
+#IF_DEFINED USING_NAV_MODULE_BASE_PASSTHRU_EVENT_CALLBACK
 define_function NAVModulePassthruEventCallback(_NAVModulePassthruEvent event) {
     if (event.Device != vdvObject) {
         return
@@ -214,6 +217,7 @@ define_function NAVModulePassthruEventCallback(_NAVModulePassthruEvent event) {
 
     SendString(event.Payload)
 }
+#END_IF
 
 
 define_function SendHeartbeat() {
