@@ -1,7 +1,7 @@
 MODULE_NAME='mShureMXA'     (
-                                    dev vdvObject,
-                                    dev dvPort
-                                )
+                                dev vdvObject,
+                                dev dvPort
+                            )
 
 (***********************************************************)
 #DEFINE USING_NAV_MODULE_BASE_CALLBACKS
@@ -105,7 +105,10 @@ DEFINE_MUTUALLY_EXCLUSIVE
 define_function SendString(char payload[]) {
     payload = "payload, NAV_CR, NAV_LF"
 
-    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_TO, dvPort, payload))
+    NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
+                NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_TO,
+                                            dvPort,
+                                            payload))
 
     send_string dvPort, "payload"
     wait 1 module.CommandBusy = false
@@ -156,7 +159,10 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
         return
     }
 
-    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_FROM, dvPort, data))
+    NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
+                NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_FROM,
+                                            dvPort,
+                                            data))
 }
 #END_IF
 
@@ -244,7 +250,8 @@ data_event[dvPort] {
     onerror: {
         if (data.device.number == 0) {
             Reset()
-            NAVErrorLog(NAV_LOG_LEVEL_ERROR, "'mShureMXA => Socket Error: ', NAVGetSocketError(type_cast(data.number))")
+            NAVErrorLog(NAV_LOG_LEVEL_ERROR,
+                        "'mShureMXA => Socket Error: ', NAVGetSocketError(type_cast(data.number))")
         }
 
     }
@@ -268,6 +275,11 @@ data_event[vdvObject] {
     }
     command: {
         stack_var _NAVSnapiMessage message
+
+        NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
+                    NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_COMMAND_FROM,
+                                                data.device,
+                                                data.text))
 
         NAVParseSnapiMessage(data.text, message)
 
