@@ -13,18 +13,93 @@
 
 ---
 
-Description
+AMX NetLinx module for Shure MXA range of microphones.
 
-## Contents 📖
+## Contents :book:
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+-   [Installation :zap:](#installation-zap)
+-   [Usage :rocket:](#usage-rocket)
 -   [Team :soccer:](#team-soccer)
 -   [Contributors :sparkles:](#contributors-sparkles)
 -   [LICENSE :balance_scale:](#license-balance_scale)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Installation :zap:
+
+This module can be installed using [Scoop](https://scoop.sh/).
+
+```powershell
+scoop bucket add norgateav-amx https://github.com/Norgate-AV/scoop-norgateav-amx
+scoop install navdatabase-amx-shure-mxa
+```
+
+## Usage :rocket:
+
+```netlinx
+DEFINE_DEVICE
+
+// The real device
+dvShureMXA                      = 0:4:0
+
+// Virtual Devices
+vdvShureMXA                     = 33201:1:0
+
+// User Interface
+dvTP                            = 10001:1:0
+
+
+DEFINE_CONSTANT
+
+constant long TL_FEEDBACK = 1
+
+
+DEFINE_VARIABLE
+
+volatile long feedback[] = { 200 }      // Every 200ms
+
+
+DEFINE_START {
+    // Start the feedback loop
+    timeline_create(TL_FEEDBACK, feedback, length_array(feedback), TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
+}
+
+
+define_module 'mShureMXA' ShureMXAComm(vdvShureMXA, dvSHureMXA)
+
+
+DEFINE_EVENT
+
+data_event[vdvShureMXA] {
+    online: {
+        send_command data.device, "'PROPERTY-IP_ADDRESS,', '192.168.1.31'"
+    }
+}
+
+
+// Button to toggle the mute state
+button_event[dvTP, 1] {
+    push: {
+        if (![vdvShureMXA, VOL_MUTE_FB]) {
+            send_command vdvShureMXA, "'MUTE-ON'"
+        }
+        else {
+            send_command vdvShureMXA, "'MUTE-OFF'"
+        }
+    }
+}
+
+
+// Update the mute state on the touch panel
+timeline_event[TL_FEEDBACK] {
+    [dvTP, 1] = [vdvShureMXA, VOL_MUTE_FB]
+}
+
+
+```
 
 ## Team :soccer:
 
