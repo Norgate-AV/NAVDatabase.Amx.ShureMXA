@@ -193,6 +193,10 @@ define_function Reset() {
 
 
 define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
+    if (event.Device != vdvObject) {
+        return
+    }
+
     switch (event.Name) {
         case NAV_MODULE_PROPERTY_EVENT_IP_ADDRESS: {
             module.Device.SocketConnection.Address = event.Args[1]
