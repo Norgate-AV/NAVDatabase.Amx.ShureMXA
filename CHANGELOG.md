@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.3](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.2...v1.0.3) (2025-01-16)
+
+### 🐛 Bug Fixes
+
+- fix path update in install script ([ee8ddc3](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/ee8ddc3d6cd30d3071d8ef107afb238ff5391a21))
+
 ## [1.0.2](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.1...v1.0.2) (2025-01-16)
 
 ### 🐛 Bug Fixes
