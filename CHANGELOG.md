@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.3...v1.0.4) (2025-02-16)
+
+### 🚀 Performance
+
+- remove unnecessary logging ([caa03b7](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/caa03b7d6b0100c0b98bccf7fa2a432b7a18ae48))
+
 ## [1.0.3](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.2...v1.0.3) (2025-01-16)
 
 ### 🐛 Bug Fixes
