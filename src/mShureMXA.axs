@@ -168,7 +168,7 @@ define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
 
     switch (event.Name) {
         case NAV_MODULE_PROPERTY_EVENT_IP_ADDRESS: {
-            module.Device.SocketConnection.Address = event.Args[1]
+            module.Device.SocketConnection.Address = NAVTrimString(event.Args[1])
             module.Device.SocketConnection.Port = IP_PORT
             NAVTimelineStart(TL_SOCKET_CHECK, TL_SOCKET_CHECK_INTERVAL, TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
         }
