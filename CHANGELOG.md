@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.5](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.4...v1.0.5) (2025-02-16)
+
+### 🐛 Bug Fixes
+
+- ensure params are trimmed ([483e6ce](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/483e6ce8ccb3982ef2c292da43ba905dae114464))
+
+### 🚀 Performance
+
+- move timeline arrays to constant ([0aba46c](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/0aba46c5ff3baf58ad83fd4d54b27c64ccfdc0e3))
+
 ## [1.0.4](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.3...v1.0.4) (2025-02-16)
 
 ### 🚀 Performance
