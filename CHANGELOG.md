@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.5...v1.1.0) (2025-02-17)
+
+### 🌟 Features
+
+- bump NAVFoundation.Amx to 1.27.0 ([cc2689e](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/cc2689e291c3d86fc64d31b9704b6225bafecea6))
+
 ## [1.0.5](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.0.4...v1.0.5) (2025-02-16)
 
 ### 🐛 Bug Fixes
