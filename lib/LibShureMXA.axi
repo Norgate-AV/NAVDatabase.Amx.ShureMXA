@@ -1,7 +1,8 @@
 PROGRAM_NAME='LibShureMXA'
 
 (***********************************************************)
-#include 'NAVFoundation.Core.axi'
+#include 'NAVFoundation.Core.h.axi'
+#include 'NAVFoundation.StringUtils.axi'
 
 /*
  _   _                       _          ___     __

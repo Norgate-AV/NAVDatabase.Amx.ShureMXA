@@ -12,6 +12,8 @@ MODULE_NAME='mShureMXA'     (
 #include 'NAVFoundation.SocketUtils.axi'
 #include 'NAVFoundation.ArrayUtils.axi'
 #include 'NAVFoundation.StringUtils.axi'
+#include 'NAVFoundation.ErrorLogUtils.axi'
+#include 'NAVFoundation.TimelineUtils.axi'
 #include 'LibShureMXA.axi'
 
 /*
@@ -137,6 +139,7 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
 
 define_function Init() {
     module.Device.IsInitialized = true
+    UpdateFeedback()
 }
 
 
@@ -144,9 +147,11 @@ define_function CommunicationTimeOut(integer timeout) {
     cancel_wait 'TimeOut'
 
     module.Device.IsCommunicating = true
+    UpdateFeedback()
 
     wait (timeout * 10) 'TimeOut' {
         module.Device.IsCommunicating = false
+        UpdateFeedback()
     }
 }
 
@@ -155,6 +160,7 @@ define_function Reset() {
     module.Device.SocketConnection.IsConnected = false
     module.Device.IsCommunicating = false
     module.Device.IsInitialized = false
+    UpdateFeedback()
 
     NAVTimelineStop(TL_HEARTBEAT)
 }
@@ -170,7 +176,10 @@ define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
         case NAV_MODULE_PROPERTY_EVENT_IP_ADDRESS: {
             module.Device.SocketConnection.Address = NAVTrimString(event.Args[1])
             module.Device.SocketConnection.Port = IP_PORT
-            NAVTimelineStart(TL_SOCKET_CHECK, TL_SOCKET_CHECK_INTERVAL, TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
+            NAVTimelineStart(TL_SOCKET_CHECK,
+                            TL_SOCKET_CHECK_INTERVAL,
+                            TIMELINE_ABSOLUTE,
+                            TIMELINE_REPEAT)
         }
     }
 }
@@ -193,6 +202,13 @@ define_function SendHeartbeat() {
 }
 
 
+define_function UpdateFeedback() {
+    [vdvObject, NAV_IP_CONNECTED]	= (module.Device.SocketConnection.IsConnected)
+    [vdvObject, DEVICE_COMMUNICATING] = (module.Device.IsCommunicating)
+    [vdvObject, DATA_INITIALIZED] = (module.Device.IsInitialized)
+}
+
+
 (***********************************************************)
 (*                STARTUP CODE GOES BELOW                  *)
 (***********************************************************)
@@ -209,12 +225,16 @@ data_event[dvPort] {
     online: {
         if (data.device.number == 0) {
             module.Device.SocketConnection.IsConnected = true
+            UpdateFeedback()
             NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'mShureMXA => Socket Online'")
         }
 
         SendHeartbeat()
 
-        NAVTimelineStart(TL_HEARTBEAT, TL_HEARTBEAT_INTERVAL, TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
+        NAVTimelineStart(TL_HEARTBEAT,
+                        TL_HEARTBEAT_INTERVAL,
+                        TIMELINE_ABSOLUTE,
+                        TIMELINE_REPEAT)
     }
     offline: {
         if (data.device.number == 0) {
@@ -271,13 +291,6 @@ timeline_event[TL_SOCKET_CHECK] { MaintainSocketConnection() }
 
 timeline_event[TL_HEARTBEAT] {
     SendHeartbeat()
-}
-
-
-timeline_event[TL_NAV_FEEDBACK] {
-    [vdvObject, NAV_IP_CONNECTED]	= (module.Device.SocketConnection.IsConnected)
-    [vdvObject, DEVICE_COMMUNICATING] = (module.Device.IsCommunicating)
-    [vdvObject, DATA_INITIALIZED] = (module.Device.IsInitialized)
 }
 
 
