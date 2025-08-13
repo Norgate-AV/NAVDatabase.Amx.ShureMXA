@@ -59,9 +59,13 @@ DEFINE_CONSTANT
 
 constant long TL_SOCKET_CHECK   = 1
 constant long TL_HEARTBEAT      = 2
+constant long TL_LEVEL_RAMP     = 3
 
 constant long TL_SOCKET_CHECK_INTERVAL[] = { 3000 }
 constant long TL_HEARTBEAT_INTERVAL[]    = { 20000 }
+constant long TL_LEVEL_RAMP_INTERVAL[]   = { 500 }
+
+
 
 
 (***********************************************************)
@@ -261,6 +265,52 @@ define_function UpdateFeedback() {
 }
 
 
+define_function IncrementLevel(integer direction) {
+    switch (direction) {
+        case VOL_UP: {
+            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level + 10))
+        }
+        case VOL_DN: {
+            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level - 10))
+        }
+    }
+}
+
+
+define_function RampLevel() {
+    select {
+        active ([vdvObject, VOL_UP]): {
+            IncrementLevel(VOL_UP)
+        }
+        active ([vdvObject, VOL_DN]): {
+            IncrementLevel(VOL_DN)
+        }
+    }
+}
+
+
+define_function ObjectChannelEvent(tchannel channel) {
+    if (!module.Device.IsInitialized) {
+        return
+    }
+
+    switch (channel.channel) {
+        case VOL_UP:
+        case VOL_DN: {
+            IncrementLevel(channel.channel)
+
+            NAVTimelineStart(TL_LEVEL_RAMP,
+                            TL_LEVEL_RAMP_INTERVAL,
+                            TIMELINE_ABSOLUTE,
+                            TIMELINE_REPEAT)
+        }
+        case VOL_MUTE: {
+            SendString(BuildMuteCommand(!object.mute))
+        }
+    }
+}
+
+
 (***********************************************************)
 (*                STARTUP CODE GOES BELOW                  *)
 (***********************************************************)
@@ -370,6 +420,21 @@ timeline_event[TL_SOCKET_CHECK] { MaintainSocketConnection() }
 
 timeline_event[TL_HEARTBEAT] {
     SendHeartbeat()
+}
+
+
+channel_event[vdvObject, 0] {
+    on: {
+        ObjectChannelEvent(channel)
+    }
+    off: {
+        NAVTimelineStop(TL_LEVEL_RAMP)
+    }
+}
+
+
+timeline_event[TL_LEVEL_RAMP] {
+    RampLevel()
 }
 
 
