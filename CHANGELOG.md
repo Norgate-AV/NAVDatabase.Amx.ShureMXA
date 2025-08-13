@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.2.0...v1.3.0) (2025-08-13)
+
+### 🌟 Features
+
+- add support for volume control of automixer ([142b9e5](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/142b9e5238d2702405c50240136792734dd62df1))
+
 ## [1.2.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.1.0...v1.2.0) (2025-03-12)
 
 ### 🌟 Features
