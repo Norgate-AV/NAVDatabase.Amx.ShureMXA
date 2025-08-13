@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.3.0...v1.4.0) (2025-08-13)
+
+### 🌟 Features
+
+- add support for control via snapi channels ([20d7250](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/20d7250cac59c0272a39c35e72d3a1b468ebc167))
+
 ## [1.3.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.2.0...v1.3.0) (2025-08-13)
 
 ### 🌟 Features
