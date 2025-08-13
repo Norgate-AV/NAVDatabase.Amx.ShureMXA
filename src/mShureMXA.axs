@@ -69,10 +69,17 @@ constant long TL_HEARTBEAT_INTERVAL[]    = { 20000 }
 (***********************************************************)
 DEFINE_TYPE
 
+struct _Object {
+    char mute
+    integer level
+}
+
 (***********************************************************)
 (*               VARIABLE DEFINITIONS GO BELOW             *)
 (***********************************************************)
 DEFINE_VARIABLE
+
+volatile _Object object
 
 (***********************************************************)
 (*               LATCHING DEFINITIONS GO BELOW             *)
@@ -133,13 +140,57 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
                 NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_FROM,
                                             dvPort,
                                             data))
+
+    data = NAVStringBetween(data, '< ', ' >')
+
+    if (!NAVStartsWith(data, 'REP')) {
+        return
+    }
+
+    remove_string(data, 'REP ', 1)
+
+    select {
+        active(NAVContains(data, COMMAND_SERIAL_NUM)): {
+            // Heartbeat response
+
+            if (module.Device.IsInitialized) {
+                return
+            }
+
+            Init()
+        }
+        active(NAVContains(data, COMMAND_DEVICE_AUDIO_MUTE)): {
+            object.mute = NAVEndsWith(data, 'ON')
+            UpdateFeedback()
+        }
+        active(NAVContains(data, COMMAND_AUDIO_GAIN_HI_RES)): {
+            stack_var integer index
+            stack_var integer level
+
+            index = atoi(NAVStripRight(remove_string(data, ' ', 1), 1))
+
+            if (index != INDEX_AUTOMIXER) {
+                // Not interested in anything other than the automixer
+                return
+            }
+
+            level = atoi(NAVStripLeft(data, NAVLastIndexOf(data, ' ') + 1))
+
+            if (object.level != level) {
+                object.level = level
+                send_level vdvObject, VOL_LVL, object.level * (MAX_LEVEL - MIN_LEVEL) / 255
+            }
+
+            module.Device.IsInitialized = true
+        }
+    }
 }
 #END_IF
 
 
 define_function Init() {
-    module.Device.IsInitialized = true
-    UpdateFeedback()
+    SendString(BuildMuteQuery())
+    SendString(BuildAudioGainQuery(INDEX_AUTOMIXER))
 }
 
 
@@ -198,11 +249,12 @@ define_function NAVModulePassthruEventCallback(_NAVModulePassthruEvent event) {
 
 
 define_function SendHeartbeat() {
-    SendString(BuildProtocol(COMMAND_TYPE_GET, 'SERIAL_NUM', ''))
+    SendString(BuildHeartbeatCommand())
 }
 
 
 define_function UpdateFeedback() {
+    [vdvObject, VOL_MUTE_FB] = (object.mute)
     [vdvObject, NAV_IP_CONNECTED]	= (module.Device.SocketConnection.IsConnected)
     [vdvObject, DEVICE_COMMUNICATING] = (module.Device.IsCommunicating)
     [vdvObject, DATA_INITIALIZED] = (module.Device.IsInitialized)
@@ -279,6 +331,33 @@ data_event[vdvObject] {
                 switch (message.Parameter[1]) {
                     case 'ON': { SendString(BuildMuteCommand(true)) }
                     case 'OFF': { SendString(BuildMuteCommand(false)) }
+                }
+            }
+            case NAV_MODULE_EVENT_VOLUME: {
+                switch (message.Parameter[1]) {
+                    case 'ABS': {
+                        if ((atoi(message.Parameter[2]) >= MIN_LEVEL) && (atoi(message.Parameter[2]) <= MAX_LEVEL)) {
+                            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, atoi(message.Parameter[2])))
+                        }
+                    }
+                    default: {
+                        stack_var sinteger level
+                        stack_var sinteger min
+                        stack_var sinteger max
+
+                        // Remove the decimal point
+                        min = MIN_LEVEL / 10
+                        max = MAX_LEVEL / 10
+
+                        level = NAVScaleValue(atoi(message.Parameter[1]),
+                                                255,
+                                                (max - min),
+                                                min)
+
+                        if ((level >= min) && (level <= max)) {
+                            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, type_cast(level * 10)))
+                        }
+                    }
                 }
             }
         }

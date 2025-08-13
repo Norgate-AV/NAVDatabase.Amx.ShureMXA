@@ -56,11 +56,26 @@ constant char COMMAND_TYPE[][NAV_MAX_CHARS]     =   {
                                                         'REP'
                                                     }
 
+constant integer INDEX_AUTOMIXER = 09
 
-define_function char[NAV_MAX_BUFFER] BuildProtocol(integer type, char cmd[], char value[]) {
+constant integer MAX_LEVEL = 1400
+constant integer MIN_LEVEL = 0
+
+constant char COMMAND_SERIAL_NUM[] = 'SERIAL_NUM'
+constant char COMMAND_DEVICE_AUDIO_MUTE[] = 'DEVICE_AUDIO_MUTE'
+constant char COMMAND_AUDIO_GAIN_HI_RES[] = 'AUDIO_GAIN_HI_RES'
+
+
+define_function char[NAV_MAX_BUFFER] BuildProtocol(integer type, char index[], char cmd[], char value[]) {
     stack_var char payload[NAV_MAX_BUFFER]
 
-    payload = "COMMAND_TYPE[type], ' ', cmd"
+    payload = "COMMAND_TYPE[type]"
+
+    if (length_array(index) > 0) {
+        payload = "payload, ' ', index"
+    }
+
+    payload = "payload, ' ', cmd"
 
     if (type != COMMAND_TYPE_GET) {
         payload = "payload, ' ', value"
@@ -71,7 +86,27 @@ define_function char[NAV_MAX_BUFFER] BuildProtocol(integer type, char cmd[], cha
 
 
 define_function char[NAV_MAX_BUFFER] BuildMuteCommand(integer state) {
-    return BuildProtocol(COMMAND_TYPE_SET, 'DEVICE_AUDIO_MUTE', upper_string(NAVBooleanToOnOffString(type_cast(state))))
+    return BuildProtocol(COMMAND_TYPE_SET, '', COMMAND_DEVICE_AUDIO_MUTE, upper_string(NAVBooleanToOnOffString(type_cast(state))))
+}
+
+
+define_function char[NAV_MAX_BUFFER] BuildMuteQuery() {
+    return BuildProtocol(COMMAND_TYPE_GET, '', COMMAND_DEVICE_AUDIO_MUTE, '')
+}
+
+
+define_function char[NAV_MAX_BUFFER] BuildAudioGainCommand(integer index, integer level) {
+    return BuildProtocol(COMMAND_TYPE_SET, format('%02d', index), COMMAND_AUDIO_GAIN_HI_RES, itoa(level))
+}
+
+
+define_function char[NAV_MAX_BUFFER] BuildAudioGainQuery(integer index) {
+    return BuildProtocol(COMMAND_TYPE_GET, format('%02d', index), COMMAND_AUDIO_GAIN_HI_RES, '')
+}
+
+
+define_function char[NAV_MAX_BUFFER] BuildHeartbeatCommand() {
+    return BuildProtocol(COMMAND_TYPE_GET, '', COMMAND_SERIAL_NUM, '')
 }
 
 
