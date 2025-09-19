@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.5.0...v1.5.1) (2025-09-19)
+
+### 🐛 Bug Fixes
+
+- ensure module object is initialized in DEFINE_START ([8498a03](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/8498a03ddb129a8a75d3c7a4a10c72de7c6752e7))
+
 ## [1.5.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.4.0...v1.5.0) (2025-09-19)
 
 ### 🌟 Features
