@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.4.0...v1.5.0) (2025-09-19)
+
+### 🌟 Features
+
+- update for NAVFoundation v3+ ([490dfde](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/490dfdecfd3c43d903b351662717b9ee28ee1577))
+
 ## [1.4.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.3.0...v1.4.0) (2025-08-13)
 
 ### 🌟 Features
