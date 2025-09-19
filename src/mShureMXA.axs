@@ -83,6 +83,7 @@ struct _Object {
 (***********************************************************)
 DEFINE_VARIABLE
 
+volatile _NAVModule module
 volatile _Object object
 
 (***********************************************************)
