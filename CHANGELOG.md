@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.5.1...v1.6.0) (2025-09-26)
+
+### 🌟 Features
+
+- add support for max/min level limits ([192356a](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/commit/192356ac56fb1351ef134ef651160d5e37835767))
+
 ## [1.5.1](https://github.com/Norgate-AV/NAVDatabase.Amx.ShureMXA/compare/v1.5.0...v1.5.1) (2025-09-19)
 
 ### 🐛 Bug Fixes
