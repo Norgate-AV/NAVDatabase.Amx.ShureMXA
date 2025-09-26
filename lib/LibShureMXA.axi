@@ -61,6 +61,9 @@ constant integer INDEX_AUTOMIXER = 09
 constant integer MAX_LEVEL = 1400
 constant integer MIN_LEVEL = 0
 
+constant sinteger MAX_LEVEL_DB = 30
+constant sinteger MIN_LEVEL_DB = -110
+
 constant char COMMAND_SERIAL_NUM[] = 'SERIAL_NUM'
 constant char COMMAND_DEVICE_AUDIO_MUTE[] = 'DEVICE_AUDIO_MUTE'
 constant char COMMAND_AUDIO_GAIN_HI_RES[] = 'AUDIO_GAIN_HI_RES'

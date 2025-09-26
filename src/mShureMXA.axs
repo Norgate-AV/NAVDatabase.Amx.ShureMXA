@@ -73,9 +73,15 @@ constant long TL_LEVEL_RAMP_INTERVAL[]   = { 500 }
 (***********************************************************)
 DEFINE_TYPE
 
+struct _Level {
+    integer value
+    integer min
+    integer max
+}
+
 struct _Object {
     char mute
-    integer level
+    _Level level
 }
 
 (***********************************************************)
@@ -179,11 +185,25 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
                 return
             }
 
-            level = atoi(NAVStripLeft(data, NAVLastIndexOf(data, ' ') + 1))
+            level = atoi(NAVStripLeft(data, NAVLastIndexOf(data, ' ')))
 
-            if (object.level != level) {
-                object.level = level
-                send_level vdvObject, VOL_LVL, object.level * (MAX_LEVEL - MIN_LEVEL) / 255
+            if (level > object.level.max) {
+                // Set to max
+                SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level.max))
+                return
+            }
+
+            if (level < object.level.min) {
+                // Set to min
+                SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level.min))
+                return
+            }
+
+            if (object.level.value != level) {
+                object.level.value = level
+                send_level vdvObject, VOL_LVL, (object.level.value - object.level.min) * 255 / (object.level.max - object.level.min)
+                send_string vdvObject, "'VOLUME-ABS,', itoa(ScaleDeviceLevelToDecibel(object.level.value))"
+                send_string vdvObject, "'VOLUME-', itoa((object.level.value - object.level.min) * 255 / (object.level.max - object.level.min))"
             }
 
             module.Device.IsInitialized = true
@@ -222,6 +242,64 @@ define_function Reset() {
 }
 
 
+define_function integer ScaleDecibelToDeviceLevel(sinteger level) {
+    // Scale from -110 to +30 dB into 0 to 1400 device level
+    return type_cast(level - MIN_LEVEL_DB) * 10
+}
+
+
+define_function sinteger ScaleDeviceLevelToDecibel(integer level) {
+    // Scale from 0 to 1400 device level into -110 to +30 dB
+    return type_cast(level / 10) + MIN_LEVEL_DB
+}
+
+
+define_function SetMaxLevel(sinteger level) {
+    stack_var integer max
+
+    max = ScaleDecibelToDeviceLevel(level)
+
+    if (max > MAX_LEVEL) {
+        max = MAX_LEVEL
+    }
+
+    NAVLog("'mShureMXA => Setting max level to ', itoa(max)")
+
+    object.level.max = max
+
+    if (!module.Device.IsInitialized) {
+        return
+    }
+
+    if (object.level.value > object.level.max) {
+        SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level.max))
+    }
+}
+
+
+define_function SetMinLevel(sinteger level) {
+    stack_var integer min
+
+    min = ScaleDecibelToDeviceLevel(level)
+
+    if (min < MIN_LEVEL) {
+        min = MIN_LEVEL
+    }
+
+    NAVLog("'mShureMXA => Setting min level to ', itoa(min)")
+
+    object.level.min = min
+
+    if (!module.Device.IsInitialized) {
+        return
+    }
+
+    if (object.level.value < object.level.min) {
+        SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level.min))
+    }
+}
+
+
 #IF_DEFINED USING_NAV_MODULE_BASE_PROPERTY_EVENT_CALLBACK
 define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
     if (event.Device != vdvObject) {
@@ -232,10 +310,17 @@ define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
         case NAV_MODULE_PROPERTY_EVENT_IP_ADDRESS: {
             module.Device.SocketConnection.Address = NAVTrimString(event.Args[1])
             module.Device.SocketConnection.Port = IP_PORT
+
             NAVTimelineStart(TL_SOCKET_CHECK,
                             TL_SOCKET_CHECK_INTERVAL,
                             TIMELINE_ABSOLUTE,
                             TIMELINE_REPEAT)
+        }
+        case 'MIN_LEVEL': {
+            SetMinLevel(atoi(NAVTrimString(event.Args[1])))
+        }
+        case 'MAX_LEVEL': {
+            SetMaxLevel(atoi(NAVTrimString(event.Args[1])))
         }
     }
 }
@@ -269,10 +354,18 @@ define_function UpdateFeedback() {
 define_function IncrementLevel(integer direction) {
     switch (direction) {
         case VOL_UP: {
-            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level + 10))
+            if (object.level.value >= object.level.max) {
+                return
+            }
+
+            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level.value + 10))
         }
         case VOL_DN: {
-            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level - 10))
+            if (object.level.value <= object.level.min) {
+                return
+            }
+
+            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, object.level.value - 10))
         }
     }
 }
@@ -318,6 +411,9 @@ define_function ObjectChannelEvent(tchannel channel) {
 DEFINE_START {
     NAVModuleInit(module)
     create_buffer dvPort, module.RxBuffer.Data
+
+    object.level.min = MIN_LEVEL
+    object.level.max = MAX_LEVEL
 }
 
 (***********************************************************)
@@ -388,26 +484,26 @@ data_event[vdvObject] {
             case NAV_MODULE_EVENT_VOLUME: {
                 switch (message.Parameter[1]) {
                     case 'ABS': {
-                        if ((atoi(message.Parameter[2]) >= MIN_LEVEL) && (atoi(message.Parameter[2]) <= MAX_LEVEL)) {
+                        if ((atoi(message.Parameter[2]) >= MIN_LEVEL_DB) && (atoi(message.Parameter[2]) <= MAX_LEVEL_DB)) {
                             SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, atoi(message.Parameter[2])))
                         }
                     }
                     default: {
-                        stack_var sinteger level
-                        stack_var sinteger min
-                        stack_var sinteger max
+                        stack_var integer level
+                        stack_var integer min
+                        stack_var integer max
 
                         // Remove the decimal point
-                        min = MIN_LEVEL / 10
-                        max = MAX_LEVEL / 10
+                        min = object.level.min / 10
+                        max = object.level.max / 10
 
-                        level = NAVScaleValue(atoi(message.Parameter[1]),
+                        level = type_cast(NAVScaleValue(atoi(message.Parameter[1]),
                                                 255,
-                                                (max - min),
-                                                min)
+                                                type_cast(max - min),
+                                                type_cast(min)))
 
                         if ((level >= min) && (level <= max)) {
-                            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, type_cast(level * 10)))
+                            SendString(BuildAudioGainCommand(INDEX_AUTOMIXER, (level * 10)))
                         }
                     }
                 }
